@@ -25,6 +25,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
  */
 public class Robot extends TimedRobot {
   XboxController controller = new XboxController(0);
+  XboxController operator = new XboxController(1);
   TalonSRX leftMaster, rightMaster, intakeMaster, elevatorMaster, intakeFollower;
   VictorSPX leftFollower, rightFollower, elevatorFollowerA, elevatorFollowerB, elevatorFollowerC;
   DoubleSolenoid intakePiston, raisePiston;
@@ -101,8 +102,28 @@ public class Robot extends TimedRobot {
 
   @Override
   public void teleopPeriodic() {
-    double turn = controller.getLeftX();
-    double drive = -controller.getLeftY();
+    double turn;
+    if (controller.getRawButton(4)) {
+      turn = 1.0;
+    }
+    else if (controller.getRawButton(3)) {
+      turn = -1.0;
+    }
+    else {
+      turn = 0.0;
+    }
+
+    double drive;
+    if (controller.getRawButton(1)) {
+      drive = 1.0;
+    }
+    else if (controller.getRawButton(2)) {
+      drive = -1.0;
+    }
+    else {
+      drive = 0.0;
+    }
+
     double leftDrive = drive + turn * Math.abs(turn);
     double rightDrive = drive - turn * Math.abs(turn);
     leftDrive *= 0.4;
@@ -111,27 +132,41 @@ public class Robot extends TimedRobot {
     leftMaster.set(ControlMode.PercentOutput, leftDrive);
     rightMaster.set(ControlMode.PercentOutput, rightDrive);
     
-    double leftTrig = controller.getLeftTriggerAxis();
-    double rightTrig = controller.getRightTriggerAxis();
+    double leftTrig;
+    if (controller.getRawButton(10)) {
+      leftTrig = 1.0;
+    }
+    else {
+      leftTrig = 0.0;
+    }
+
+    double rightTrig;
+    if (controller.getRawButton(9)) {
+      rightTrig = 1.0;
+    }
+    else {
+      rightTrig = 0.0;
+    }
+
     if(leftTrig > rightTrig) {
       intakeMaster.set(ControlMode.PercentOutput, leftTrig * 0.4);
     } else {
       intakeMaster.set(ControlMode.PercentOutput, -rightTrig * 0.9);
     }
     
-    if(controller.getAButtonPressed()) {
+    if(controller.getRawButton(7)) {
       if(intakePiston.get() == DoubleSolenoid.Value.kOff)
         intakePiston.set(DoubleSolenoid.Value.kReverse);
       else intakePiston.toggle();
     }
 
-    if(controller.getBButtonPressed()) {
+    if(controller.getRawButton(8)) {
       if(raisePiston.get() == DoubleSolenoid.Value.kOff)
       raisePiston.set(DoubleSolenoid.Value.kReverse);
       else raisePiston.toggle();
     }
 
-    elevatorMaster.set(ControlMode.PercentOutput, -controller.getRightY() * 0.4, DemandType.ArbitraryFeedForward, 0.13);
+    elevatorMaster.set(ControlMode.PercentOutput, -operator.getLeftY() * 0.4, DemandType.ArbitraryFeedForward, 0.13);
 
     // if(controller.getPOV(0) < 45 && controller.getPOV(0) > 315)
     // {
