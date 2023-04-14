@@ -155,19 +155,23 @@ public class Robot extends TimedRobot {
     }
     
     if(controller.getRawButton(7)) {
+      elevatorMaster.set(ControlMode.PercentOutput, 0.2, DemandType.ArbitraryFeedForward, 0.13);
+    }
+
+    if(controller.getRawButton(8)) {
+      elevatorMaster.set(ControlMode.PercentOutput, -0.4, DemandType.ArbitraryFeedForward, 0.13);
+
+    }
+    if(operator.getRightBumperPressed()) {
       if(intakePiston.get() == DoubleSolenoid.Value.kOff)
         intakePiston.set(DoubleSolenoid.Value.kReverse);
       else intakePiston.toggle();
     }
-
-    if(controller.getRawButton(8)) {
+    if(operator.getLeftBumperPressed()) {
       if(raisePiston.get() == DoubleSolenoid.Value.kOff)
-      raisePiston.set(DoubleSolenoid.Value.kReverse);
+        raisePiston.set(DoubleSolenoid.Value.kReverse);
       else raisePiston.toggle();
     }
-
-    elevatorMaster.set(ControlMode.PercentOutput, -operator.getLeftY() * 0.4, DemandType.ArbitraryFeedForward, 0.13);
-
     // if(controller.getPOV(0) < 45 && controller.getPOV(0) > 315)
     // {
     //   elevatorMaster.set(ControlMode.PercentOutput, 0.5);
