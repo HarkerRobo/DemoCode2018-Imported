@@ -18,19 +18,23 @@ import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 /**
- * The VM is configured to automatically run this class, and to call the functions corresponding to
- * each mode, as described in the TimedRobot documentation. If you change the name of this class or
- * the package after creating this project, you must also update the build.gradle file in the
+ * The VM is configured to automatically run this class, and to call the
+ * functions corresponding to
+ * each mode, as described in the TimedRobot documentation. If you change the
+ * name of this class or
+ * the package after creating this project, you must also update the
+ * build.gradle file in the
  * project.
  */
 public class Robot extends TimedRobot {
   XboxController controller = new XboxController(0);
-  XboxController operator = new XboxController(1);
   TalonSRX leftMaster, rightMaster, intakeMaster, elevatorMaster, intakeFollower;
   VictorSPX leftFollower, rightFollower, elevatorFollowerA, elevatorFollowerB, elevatorFollowerC;
   DoubleSolenoid intakePiston, raisePiston;
+
   /**
-   * This function is run when the robot is first started up and should be used for any
+   * This function is run when the robot is first started up and should be used
+   * for any
    * initialization code.
    */
   @Override
@@ -43,14 +47,14 @@ public class Robot extends TimedRobot {
     rightMaster.configFactoryDefault();
     leftFollower.configFactoryDefault();
     rightFollower.configFactoryDefault();
-    
-		// invert
-		leftMaster.setInverted(true);
-		leftFollower.setInverted(true);
-		rightFollower.setInverted(false);
-		rightMaster.setInverted(false);
-		// Set following
-		leftFollower.follow(leftMaster);
+
+    // invert
+    leftMaster.setInverted(true);
+    leftFollower.setInverted(true);
+    rightFollower.setInverted(false);
+    rightMaster.setInverted(false);
+    // Set following
+    leftFollower.follow(leftMaster);
     rightFollower.follow(rightMaster);
 
     intakeMaster = new TalonSRX(6);
@@ -60,7 +64,7 @@ public class Robot extends TimedRobot {
     intakeMaster.setInverted(true);
 
     intakeFollower.follow(intakeMaster);
-    
+
     intakePiston = new DoubleSolenoid(PneumaticsModuleType.CTREPCM, 0, 2);
     raisePiston = new DoubleSolenoid(PneumaticsModuleType.CTREPCM, 1, 3);
 
@@ -74,10 +78,10 @@ public class Robot extends TimedRobot {
     elevatorFollowerC.follow(elevatorMaster);
 
     elevatorMaster.setNeutralMode(NeutralMode.Brake);
-		elevatorFollowerA.setNeutralMode(NeutralMode.Brake);
-		elevatorFollowerB.setNeutralMode(NeutralMode.Brake);
+    elevatorFollowerA.setNeutralMode(NeutralMode.Brake);
+    elevatorFollowerB.setNeutralMode(NeutralMode.Brake);
     elevatorFollowerC.setNeutralMode(NeutralMode.Brake);
-    
+
     elevatorMaster.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative);
     elevatorMaster.setSelectedSensorPosition(0);
     elevatorMaster.configForwardSoftLimitThreshold(18000);
@@ -92,37 +96,24 @@ public class Robot extends TimedRobot {
   }
 
   @Override
-  public void autonomousInit() {}
+  public void autonomousInit() {
+  }
 
   @Override
-  public void autonomousPeriodic() {}
+  public void autonomousPeriodic() {
+  }
 
   @Override
-  public void teleopInit() {}
+  public void teleopInit() {
+  }
 
   @Override
   public void teleopPeriodic() {
     double turn;
-    if (controller.getRawButton(4)) {
-      turn = 1.0;
-    }
-    else if (controller.getRawButton(3)) {
-      turn = -1.0;
-    }
-    else {
-      turn = 0.0;
-    }
+    turn = controller.getRawAxis(0);
 
     double drive;
-    if (controller.getRawButton(1)) {
-      drive = 1.0;
-    }
-    else if (controller.getRawButton(2)) {
-      drive = -1.0;
-    }
-    else {
-      drive = 0.0;
-    }
+    drive = -controller.getRawAxis(1);
 
     double leftDrive = drive + turn * Math.abs(turn);
     double rightDrive = drive - turn * Math.abs(turn);
@@ -131,67 +122,54 @@ public class Robot extends TimedRobot {
 
     leftMaster.set(ControlMode.PercentOutput, leftDrive);
     rightMaster.set(ControlMode.PercentOutput, rightDrive);
-    
+
     double leftTrig;
-    if (controller.getRawButton(10)) {
-      leftTrig = 1.0;
-    }
-    else {
-      leftTrig = 0.0;
-    }
+    leftTrig = controller.getLeftTriggerAxis();
 
     double rightTrig;
-    if (controller.getRawButton(9)) {
-      rightTrig = 1.0;
-    }
-    else {
-      rightTrig = 0.0;
-    }
+    rightTrig = controller.getRightTriggerAxis();
 
-    if(leftTrig > rightTrig) {
+    if (leftTrig > rightTrig) {
       intakeMaster.set(ControlMode.PercentOutput, leftTrig * 0.4);
     } else {
       intakeMaster.set(ControlMode.PercentOutput, -rightTrig * 0.9);
     }
-    
-    if(controller.getRawButton(7)) {
+
+    if (-controller.getRawAxis(5) > 0.5)
       elevatorMaster.set(ControlMode.PercentOutput, 0.2, DemandType.ArbitraryFeedForward, 0.13);
-    }
-
-    if(controller.getRawButton(8)) {
+    else if (-controller.getRawAxis(5) < -0.5)
       elevatorMaster.set(ControlMode.PercentOutput, -0.4, DemandType.ArbitraryFeedForward, 0.13);
+    else
+      elevatorMaster.set(ControlMode.PercentOutput, 0, DemandType.ArbitraryFeedForward, 0.13);
 
-    }
-    if(operator.getRightBumperPressed()) {
-      if(intakePiston.get() == DoubleSolenoid.Value.kOff)
+    
+    if (controller.getRightBumperPressed()) {
+      if (intakePiston.get() == DoubleSolenoid.Value.kOff)
         intakePiston.set(DoubleSolenoid.Value.kReverse);
-      else intakePiston.toggle();
+      else
+        intakePiston.toggle();
     }
-    if(operator.getLeftBumperPressed()) {
-      if(raisePiston.get() == DoubleSolenoid.Value.kOff)
+    if (controller.getLeftBumperPressed()) {
+      if (raisePiston.get() == DoubleSolenoid.Value.kOff)
         raisePiston.set(DoubleSolenoid.Value.kReverse);
-      else raisePiston.toggle();
+      else
+        raisePiston.toggle();
     }
-    // if(controller.getPOV(0) < 45 && controller.getPOV(0) > 315)
-    // {
-    //   elevatorMaster.set(ControlMode.PercentOutput, 0.5);
-    // }
-    // else if (controller.getPOV(0) > 135 && controller.getPOV(0) < 225)
-    // {
-    //   elevatorMaster.set(ControlMode.PercentOutput, -0.5);
-    // }
-    // else intakeMaster.set(ControlMode.PercentOutput, 0);
   }
 
   @Override
-  public void disabledInit() {}
+  public void disabledInit() {
+  }
 
   @Override
-  public void disabledPeriodic() {}
+  public void disabledPeriodic() {
+  }
 
   @Override
-  public void testInit() {}
+  public void testInit() {
+  }
 
   @Override
-  public void testPeriodic() {}
+  public void testPeriodic() {
+  }
 }
